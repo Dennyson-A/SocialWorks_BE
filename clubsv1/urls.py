@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import AdminSignUPAPIView, EventAttendanceAPIView, FacultySignUpAPIView, SignInAPIView, YearAPIView, ClubAPIView, EventAPIView, StudentSignUpAPIView, BatchAPIView, UploadStudentsAPIView, MarkAttendanceAPIView, StudentListAPIView, AnnouncementsAPIView
-from .views import AdminAnnouncementsListAPIView, ViewAttendanceAPIView, StudentDataAPIView, StudentSignInAPIView
+from .views import AdminAnnouncementsListAPIView, ViewAttendanceAPIView, StudentDataAPIView, StudentSignInAPIView, FacultyListAPIView, EventTypeCountAPIView, BloodGroupListAPIView, DepartmentListAPIView, EventStudentsListAPIView, UpcomingAnnouncementsAPIView
+from .views import UpcomingEventsAPIView, EventClubListAPIView
 urlpatterns = [
     path('login/', SignInAPIView.as_view(), name='userlogin'),
     path('admin/signup/', AdminSignUPAPIView.as_view(), name='adminsignup'),
@@ -19,4 +20,12 @@ urlpatterns = [
     path('adminannouncements/', AdminAnnouncementsListAPIView.as_view(), name='adminannouncements'),
     path('viewattendance/', ViewAttendanceAPIView.as_view(), name='viewattendance'),
     path('studentdata/', StudentDataAPIView.as_view(), name='studentdata'),
+    path('facultylist/', FacultyListAPIView.as_view(), name='facultylist'),
+    path('eventtypes/', EventTypeCountAPIView.as_view(), name='eventtypes'),
+    path('eventclubs/', EventClubListAPIView.as_view(), name='eventclubs'),
+    path('bloodgroups/', BloodGroupListAPIView.as_view(), name='bloodgroups'),
+    path('departments/', DepartmentListAPIView.as_view(), name='departments'),
+    path('eventstudents/', EventStudentsListAPIView.as_view(), name='eventstudents'),
+    path('upcomingannouncements/', UpcomingAnnouncementsAPIView.as_view(), name='upcomingannouncements'),
+    path('upcomingevents/', UpcomingEventsAPIView.as_view(), name='upcomingevents'),
 ]

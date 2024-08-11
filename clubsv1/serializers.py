@@ -116,3 +116,23 @@ class StudentDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = ['id', 'first_name', 'last_name', 'rollNo', 'registerNumber', 'department', 'dob', 'phoneNumber', 'role', 'noOfHours', 'ClubId', 'BatchId']
+        
+class FacultyViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Faculty
+        fields = ['id', 'email', 'first_name', 'last_name']
+        
+class EventTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = [ 'eventName', 'eventType', 'eventDate', 'eventDescription', 'numberOfHours']
+        
+class StudentBloodGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['first_name', 'last_name', 'rollNo', 'registerNumber', 'department', 'dob', 'phoneNumber', 'gender']
+        
+class DepartmentStudentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['first_name', 'last_name', 'rollNo', 'registerNumber', 'department', 'dob', 'phoneNumber', 'noOfHours']
