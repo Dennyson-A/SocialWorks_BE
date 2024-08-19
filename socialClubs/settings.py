@@ -32,6 +32,8 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'clubsv1',
+    'django_otp',
+    'django_otp.plugins.otp_static',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,6 +43,16 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 ]
+
+# EMAIL SETTINGS
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'gibson.25cs@licet.ac.in'
+EMAIL_HOST_PASSWORD = 'FATIMAnarselMARY1305@'
+DEFAULT_FROM_EMAIL = 'gibson.25cs@licet.ac.in'
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

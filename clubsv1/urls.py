@@ -1,11 +1,13 @@
 from django.urls import path
 from .views import AdminSignUPAPIView, EventAttendanceAPIView, FacultySignUpAPIView, SignInAPIView, YearAPIView, ClubAPIView, EventAPIView, StudentSignUpAPIView, BatchAPIView, UploadStudentsAPIView, MarkAttendanceAPIView, StudentListAPIView, AnnouncementsAPIView
 from .views import AdminAnnouncementsListAPIView, ViewAttendanceAPIView, StudentDataAPIView, StudentSignInAPIView, FacultyListAPIView, EventTypeCountAPIView, BloodGroupListAPIView, DepartmentListAPIView, EventStudentsListAPIView, UpcomingAnnouncementsAPIView
-from .views import UpcomingEventsAPIView, EventClubListAPIView
+from .views import UpcomingEventsAPIView, EventClubListAPIView, StudentOTPAPIView, StudentOTPVerifyAPIView
 urlpatterns = [
     path('login/', SignInAPIView.as_view(), name='userlogin'),
     path('admin/signup/', AdminSignUPAPIView.as_view(), name='adminsignup'),
     path('faculty/signup/', FacultySignUpAPIView.as_view(), name='facultysignup'),   
+    path('otp/', StudentOTPAPIView.as_view(), name='otp'),
+    path('otpverify/', StudentOTPVerifyAPIView.as_view(), name='otpverify'),
     path('student/signup/', StudentSignUpAPIView.as_view(), name='studentsignup'),
     path('student/signin/', StudentSignInAPIView.as_view(), name='studentsignin'),
     path('yeardata/', YearAPIView.as_view(), name='year'), 

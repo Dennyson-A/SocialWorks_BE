@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Student, Faculty, YearData, Club, Event, Batch, Announcements
+from .models import Student, Faculty, YearData, Club, Event, Batch, Announcements, OTP
 
 class StudentUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -136,3 +136,13 @@ class DepartmentStudentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = ['first_name', 'last_name', 'rollNo', 'registerNumber', 'department', 'dob', 'phoneNumber', 'noOfHours']
+        
+class OTPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OTP
+        fields = ['email', 'password', 'first_name', 'last_name', 'otp']
+        
+class StudentOTPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['id', 'email', 'first_name', 'last_name']

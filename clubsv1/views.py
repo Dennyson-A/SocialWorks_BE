@@ -5,10 +5,10 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 import pandas as pd
 
-from .models import Faculty, YearData, Club, Event, Student, Batch, Announcements
+from .models import Faculty, YearData, Club, Event, Student, Batch, Announcements, OTP
 from .serializers import FacultyUserSerializer, YearDataSerializer, ClubDataSerializer, EventDataSerializer, StudentUserSerializer, BatchDataSerializer, StudentListSerializer, MarkAttendanceSerializer, AnnouncementsDataSerializer, AnnouncementsSerializer, AdminAnnouncementsSerializer
-from .serializers import StudentDataSerializer, FacultyViewSerializer, EventTypeSerializer, StudentBloodGroupSerializer, DepartmentStudentsSerializer
-from .methods import encrypt_password, faculty_encode_token, ob_encode_token, hoc_encode_token, validate_batch, student_encode_token
+from .serializers import StudentDataSerializer, FacultyViewSerializer, EventTypeSerializer, StudentBloodGroupSerializer, DepartmentStudentsSerializer, OTPSerializer, StudentOTPSerializer
+from .methods import encrypt_password, faculty_encode_token, ob_encode_token, hoc_encode_token, validate_batch, student_encode_token, send_email, generate_otp
 from .authentication import HOCTokenAuthentication
 from .forms import UploadFileForm
 import logging
@@ -32,16 +32,24 @@ class AdminSignUPAPIView(APIView):
 #SIGN UP API / CREATE FACULTY USER API
 class FacultySignUpAPIView(APIView):
     def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
         serializer = FacultyUserSerializer(data=request.data)
         
         if serializer.is_valid():
             raw_password = serializer.validated_data.get('password')
             encrypted_password = encrypt_password(raw_password)
-            serializer.save(password=encrypted_password)
-            return Response({'data': serializer.data, 'message': "User created successfully"}, status=status.HTTP_201_CREATED)
+            user = serializer.save(password=encrypted_password)
+            
+            # Generate and send OTP
+            otp = generate_otp()
+            request.session['otp'] = otp
+            request.session['user_id'] = str(user.id)
+            send_email(email, "Your OTP", f"Your OTP code is {otp}")
+            return Response({'data': serializer.data, 'message': "User created successfully, OTP has been send to your email"}, status=status.HTTP_201_CREATED)
         else:
+            logger.error(f"Signup failed: {serializer.errors}")
             return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
+        
 #SIGN UP API / CREATE STUDENT USER API
 class StudentSignUpAPIView(APIView):
     # authentication_classes = [HOCTokenAuthentication]
@@ -49,11 +57,29 @@ class StudentSignUpAPIView(APIView):
         serializer = StudentUserSerializer(data=request.data)
         if serializer.is_valid():
             raw_password = serializer.validated_data.get('password')
-            encrypted_password = encrypt_password(raw_password)
-            serializer.save(password=encrypted_password)
+            serializer.save(password=raw_password)
             return Response({'data': serializer.data, 'message': "User created successfully"}, status=status.HTTP_201_CREATED)
         else:
             logger.error(f"Signup failed: {serializer.errors}")
+            return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def put(self, request, *args, **kwargs):
+        student_id = request.data.get('id')  # Get the `id` from the request data
+        
+        if not student_id:
+            return Response({'error': 'ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            student = Student.objects.get(id=student_id)
+        except Student.DoesNotExist:
+            return Response({'error': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = StudentUserSerializer(student, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'data': serializer.data, 'message': "User updated successfully"}, status=status.HTTP_200_OK)
+        else:
+            logger.error(f"Update failed: {serializer.errors}")
             return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
 #SIGN IN API Faculty and HOC
@@ -111,6 +137,7 @@ class StudentSignInAPIView(APIView):
             data = request.data
             email = data.get("email")
             password = data.get("password")
+            print(email, password)
             user = Student.objects.get(email=email)
             serializedUser = StudentDataSerializer(user)
 
@@ -243,6 +270,7 @@ class BatchAPIView(APIView):
         batchData = Batch.objects.all()
         serializedBatchData = BatchDataSerializer(batchData, many=True)
         return Response({'data': serializedBatchData.data}, status=status.HTTP_200_OK)
+
 # UPLOAD STUDENTS API
 class UploadStudentsAPIView(APIView):
    def post(self, request, *args, **kwargs):
@@ -438,7 +466,37 @@ class StudentDataAPIView(APIView):
         serializedStudent = StudentDataSerializer(student)
         return Response({'data': serializedStudent.data}, status=200)
     
-
+class StudentOTPAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        email = data.get('email')
+        otp = generate_otp()
+        send_email(email,"Your OTP", f"Your OTP code is {otp}")
+        data['otp'] = otp
+        serializedOTP = OTPSerializer(data=data)
+        if serializedOTP.is_valid():
+            serializedOTP.save()
+            return Response({'data': serializedOTP.data, 'message': "OTP sent successfully"}, status=200)
+        else:
+            logger.error(f"OTP sending failed: {serializedOTP.errors}")
+            return Response({'error': serializedOTP.errors, 'message':"otp with this email already exists"}, status=400)
+        
+class StudentOTPVerifyAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        email = request.query_params.get('email')
+        otp = request.query_params.get('otp')
+        first_name = request.query_params.get('first_name')
+        last_name = request.query_params.get('last_name')
+        password = request.query_params.get('password')
+        
+        try:
+            otp_instance = OTP.objects.get(email=email, otp=otp)
+            otp_instance.delete()
+            student = Student.objects.create(email=email, password=password, first_name=first_name, last_name=last_name)
+            serializedStudent = StudentOTPSerializer(student)
+            return Response({'data':serializedStudent.data, 'message': 'OTP verified successfully'}, status=200)
+        except OTP.DoesNotExist:
+            return Response({'error': 'Invalid OTP'}, status=400)
 
 #SORTING FILTERS
 class EventTypeCountAPIView(APIView):
