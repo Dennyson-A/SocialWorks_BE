@@ -1,7 +1,10 @@
 from django.urls import path
-from .views import AdminSignUPAPIView, EventAttendanceAPIView, FacultySignUpAPIView, SignInAPIView, YearAPIView, ClubAPIView, EventAPIView, StudentSignUpAPIView, BatchAPIView, UploadStudentsAPIView, MarkAttendanceAPIView, StudentListAPIView, AnnouncementsAPIView
-from .views import AdminAnnouncementsListAPIView, ViewAttendanceAPIView, StudentDataAPIView, StudentSignInAPIView, FacultyListAPIView, EventTypeCountAPIView, BloodGroupListAPIView, DepartmentListAPIView, EventStudentsListAPIView, UpcomingAnnouncementsAPIView
-from .views import UpcomingEventsAPIView, EventClubListAPIView, StudentOTPAPIView, StudentOTPVerifyAPIView
+from .views import ( AdminSignUPAPIView, EventAttendanceAPIView, FacultySignUpAPIView, SignInAPIView, YearAPIView, 
+                    ClubAPIView, EventAPIView, StudentSignUpAPIView, BatchAPIView, UploadStudentsAPIView, MarkAttendanceAPIView, StudentListAPIView, AnnouncementsAPIView,
+                    AdminAnnouncementsListAPIView, ViewAttendanceAPIView, StudentDataAPIView, StudentSignInAPIView, FacultyListAPIView, 
+                    EventTypeCountAPIView, BloodGroupListAPIView, DepartmentListAPIView, EventStudentsListAPIView, UpcomingAnnouncementsAPIView,
+                    UpcomingEventsAPIView, EventClubListAPIView, StudentOTPAPIView, StudentOTPVerifyAPIView, QuotaCreateAPIView )
+
 urlpatterns = [
     path('login/', SignInAPIView.as_view(), name='userlogin'),
     path('admin/signup/', AdminSignUPAPIView.as_view(), name='adminsignup'),
@@ -30,4 +33,5 @@ urlpatterns = [
     path('eventstudents/', EventStudentsListAPIView.as_view(), name='eventstudents'),
     path('upcomingannouncements/', UpcomingAnnouncementsAPIView.as_view(), name='upcomingannouncements'),
     path('upcomingevents/', UpcomingEventsAPIView.as_view(), name='upcomingevents'),
+    path('quota/', QuotaCreateAPIView.as_view(), name='quota'),
 ]

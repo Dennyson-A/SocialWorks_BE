@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 import uuid
+from django.db.models import Sum
 
 class Student(models.Model):
     Roles = ( ('student', 'student'), ('OB', 'OB') )
@@ -104,8 +105,8 @@ class Quota(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     clubId = models.ForeignKey('Club', on_delete=models.CASCADE)
     batchId = models.ForeignKey('Batch', on_delete=models.CASCADE)
-    yearId = models.ForeignKey('YearData', on_delete=models.CASCADE)
     department = models.CharField(max_length=100, choices=Dept, default="SNH")
-    quota = models.IntegerField()
+    quota = models.IntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     modified_at = models.DateTimeField(auto_now=True)
+    

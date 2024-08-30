@@ -67,7 +67,7 @@ def generate_otp():
     
 def send_email(to_email, email_subject, email_body):
     sender_email = "gibson.25cs@licet.ac.in"
-    sender_password = "FATIMAnarselMARY1305@"
+    sender_password = "GIBson6103@"
 
     if not sender_email or not sender_password:
         raise ValueError("Sender email or password not set in environment variables")

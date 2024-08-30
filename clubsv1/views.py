@@ -1,13 +1,16 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 import pandas as pd
+from django.db.models import Sum
 
-from .models import Faculty, YearData, Club, Event, Student, Batch, Announcements, OTP
-from .serializers import FacultyUserSerializer, YearDataSerializer, ClubDataSerializer, EventDataSerializer, StudentUserSerializer, BatchDataSerializer, StudentListSerializer, MarkAttendanceSerializer, AnnouncementsDataSerializer, AnnouncementsSerializer, AdminAnnouncementsSerializer
-from .serializers import StudentDataSerializer, FacultyViewSerializer, EventTypeSerializer, StudentBloodGroupSerializer, DepartmentStudentsSerializer, OTPSerializer, StudentOTPSerializer
+from .models import Faculty, YearData, Club, Event, Student, Batch, Announcements, OTP, Quota
+from .serializers import (FacultyUserSerializer, YearDataSerializer, ClubDataSerializer, EventDataSerializer, StudentUserSerializer, BatchDataSerializer, 
+                        StudentListSerializer, MarkAttendanceSerializer, AnnouncementsDataSerializer, AnnouncementsSerializer, AdminAnnouncementsSerializer,
+                        StudentDataSerializer, FacultyViewSerializer, EventTypeSerializer, StudentBloodGroupSerializer, DepartmentStudentsSerializer, OTPSerializer, 
+                        StudentOTPSerializer, QuotaSerializer)
 from .methods import encrypt_password, faculty_encode_token, ob_encode_token, hoc_encode_token, validate_batch, student_encode_token, send_email, generate_otp
 from .authentication import HOCTokenAuthentication
 from .forms import UploadFileForm
@@ -54,6 +57,21 @@ class FacultySignUpAPIView(APIView):
 class StudentSignUpAPIView(APIView):
     # authentication_classes = [HOCTokenAuthentication]
     def post(self, request, *args, **kwargs):
+        data = request.data
+        batchId = data.get('BatchId')
+        clubId = data.get('ClubId')
+        department = data.get('department')
+        
+        quota = Quota.objects.filter(batchId=batchId, clubId=clubId, department=department)
+        if quota.exists():
+            quota = quota.first()
+            if quota.quota == 0:
+                return Response({'error': 'Quota limit reached'}, status=status.HTTP_400_BAD_REQUEST)
+            quota.quota -= 1
+            quota.save()
+        else:
+            return Response({'error': 'Quota not found'}, status=status.HTTP_400_BAD_REQUEST)
+        
         serializer = StudentUserSerializer(data=request.data)
         if serializer.is_valid():
             raw_password = serializer.validated_data.get('password')
@@ -576,3 +594,55 @@ class UpcomingEventsAPIView(APIView):
         )
         serializedEvents = EventDataSerializer(events, many=True)
         return Response({'data': serializedEvents.data}, status=200)
+
+
+#Quota API
+class QuotaCreateAPIView(APIView):
+    def post(self, request):
+        try :
+            club_id = request.data.get('clubId')
+            batch_id = request.data.get('batchId')
+            quotas = request.data.get('quotas', [])
+
+            club = get_object_or_404(Club, id=club_id)
+            batch = get_object_or_404(Batch, id=batch_id)
+
+            created_quotas = []
+
+            for quota_data in quotas:
+                quota_data['clubId'] = club.id
+                quota_data['batchId'] = batch.id
+                serializer = QuotaSerializer(data=quota_data)
+                if serializer.is_valid():
+                    serializer.save()
+                    created_quotas.append(serializer.data)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({"created_quotas": created_quotas}, status=status.HTTP_201_CREATED)
+        
+        except:
+            logger.error(f"Quota creation failed: {serializer.errors}")
+            return Response({'error': 'Invalid clubId or batchId'}, status=400)
+        
+    def get(self, request):
+        batch_id = request.query_params.get('batchId')
+        department = request.query_params.get('department')
+        print(batch_id, department)
+        if not batch_id or not department:
+            return Response({"error": "batchId and department are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch the quotas for the given batch and department
+        quotas = Quota.objects.filter(batchId=batch_id, department=department)
+        total_quota = quotas.aggregate(Sum('quota'))['quota__sum'] or 0
+
+        # Initialize an empty list for clubs
+        clubs = []
+
+        if total_quota > 0:
+            clubs = list(quotas.filter(quota__gt=0).values('clubId__id', 'clubId__clubname'))
+
+        if clubs:
+            return Response({"data": clubs}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "No clubs with remaining quota found."}, status=status.HTTP_404_NOT_FOUND)
