@@ -57,21 +57,6 @@ class FacultySignUpAPIView(APIView):
 class StudentSignUpAPIView(APIView):
     # authentication_classes = [HOCTokenAuthentication]
     def post(self, request, *args, **kwargs):
-        data = request.data
-        batchId = data.get('BatchId')
-        clubId = data.get('ClubId')
-        department = data.get('department')
-        
-        quota = Quota.objects.filter(batchId=batchId, clubId=clubId, department=department)
-        if quota.exists():
-            quota = quota.first()
-            if quota.quota == 0:
-                return Response({'error': 'Quota limit reached'}, status=status.HTTP_400_BAD_REQUEST)
-            quota.quota -= 1
-            quota.save()
-        else:
-            return Response({'error': 'Quota not found'}, status=status.HTTP_400_BAD_REQUEST)
-        
         serializer = StudentUserSerializer(data=request.data)
         if serializer.is_valid():
             raw_password = serializer.validated_data.get('password')
@@ -82,7 +67,20 @@ class StudentSignUpAPIView(APIView):
             return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
     def put(self, request, *args, **kwargs):
-        student_id = request.data.get('id')  # Get the `id` from the request data
+        data = request.data
+        student_id = data.get('id')  # Get the `id` from the request data
+        batchId = data.get('BatchId')
+        clubId = data.get('ClubId')
+        department = data.get('department')
+        quota = Quota.objects.filter(batchId=batchId, clubId=clubId, department=department)
+        if quota.exists():
+            quota = quota.first()
+            if quota.quota == 0:
+                return Response({'error': 'Quota limit reached'}, status=status.HTTP_400_BAD_REQUEST)
+            quota.quota -= 1
+            quota.save()
+        else:
+            return Response({'error': 'Quota not found'}, status=status.HTTP_400_BAD_REQUEST)
         
         if not student_id:
             return Response({'error': 'ID is required'}, status=status.HTTP_400_BAD_REQUEST)
