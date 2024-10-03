@@ -11,12 +11,13 @@ from .serializers import (FacultyUserSerializer, YearDataSerializer, ClubDataSer
                         StudentListSerializer, MarkAttendanceSerializer, AnnouncementsDataSerializer, AnnouncementsSerializer, AdminAnnouncementsSerializer,
                         StudentDataSerializer, FacultyViewSerializer, EventTypeSerializer, StudentBloodGroupSerializer, DepartmentStudentsSerializer, OTPSerializer, 
                         StudentOTPSerializer, QuotaSerializer)
-from .methods import encrypt_password, faculty_encode_token, ob_encode_token, hoc_encode_token, validate_batch, student_encode_token, send_email, generate_otp
+from .methods import encrypt_password, faculty_encode_token, hoc_encode_token, validate_batch, student_encode_token, send_email, generate_otp
 from .authentication import HOCTokenAuthentication
 from .forms import UploadFileForm
 import logging
 from django.db.models import Count
 from django.utils import timezone
+from .authentication import StudentUserTokenAuthentication, FacultyTokenAuthentication, HOCTokenAuthentication
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +142,7 @@ class SignInAPIView(APIView):
         
 #VIEW FACULTY API
 class FacultyListAPIView(APIView):
+    athentication_classes = [HOCTokenAuthentication]
     def get(self, request, *args, **kwargs):
         faculty = Faculty.objects.filter(role='faculty')
         serializedFaculty = FacultyViewSerializer(faculty, many=True)
@@ -189,7 +191,7 @@ class StudentSignInAPIView(APIView):
 
 # YEAR API
 class YearAPIView(APIView):
-    # authentication_classes = [HOCTokenAuthentication]
+    authentication_classes = [HOCTokenAuthentication, FacultyTokenAuthentication]
     def post(self, request, *args, **kwargs):
         data = request.data
         seerializedYearData = YearDataSerializer(data=data)
@@ -206,8 +208,7 @@ class YearAPIView(APIView):
         
 #CLUB API
 class ClubAPIView(APIView):
-    # authentication_classes = [HOCTokenAuthentication]
-
+    authentication_classes = [HOCTokenAuthentication, FacultyTokenAuthentication]
     def post(self, request, *args, **kwargs):
         data = request.data
         facultyId = data.get('facultyID')  # Correct key to match your front-end data
@@ -238,7 +239,7 @@ class ClubAPIView(APIView):
         
 #EVENT API
 class EventAPIView(APIView):
-    # authentication_classes = [HOCTokenAuthentication]
+    authentication_classes = [FacultyTokenAuthentication]
     def post(self, request, *args, **kwargs):
         data = request.data
         seerializedEventData = EventDataSerializer(data=data)
@@ -289,7 +290,8 @@ class BatchAPIView(APIView):
 
 # UPLOAD STUDENTS API
 class UploadStudentsAPIView(APIView):
-   def post(self, request, *args, **kwargs):
+    athentication_classes = [HOCTokenAuthentication]
+    def post(self, request, *args, **kwargs):
         print(request.FILES)
         print(request.POST)
         form = UploadFileForm(request.POST, request.FILES)
@@ -339,6 +341,7 @@ class UploadStudentsAPIView(APIView):
         
 # STUDENT LIST API
 class StudentListAPIView(APIView):
+    authentication_classes = [FacultyTokenAuthentication]
     def post(self, request, *args, **kwargs):
         data = request.data
         club_id = data.get('ClubId')
@@ -357,6 +360,7 @@ class StudentListAPIView(APIView):
 
 # MARK ATTENDANCE API
 class MarkAttendanceAPIView(APIView):
+    authentication_classes = [FacultyTokenAuthentication]
     def post(self, request, *args, **kwargs):
         serializer = MarkAttendanceSerializer(data=request.data)
         if serializer.is_valid():
@@ -381,6 +385,7 @@ class MarkAttendanceAPIView(APIView):
 
 # EVENT ATTENDANCE API
 class EventAttendanceAPIView(APIView):
+    athentication_classes = [HOCTokenAuthentication]
     def post(self, request, *args, **kwargs):
         data = request.data
         batch_id = data.get('BatchId')
@@ -400,7 +405,7 @@ class EventAttendanceAPIView(APIView):
     
 # ANNOUNCEMENTS API
 class AnnouncementsAPIView(APIView):
-    
+    authentication_classes = [FacultyTokenAuthentication]
     def post(self, request, *args, **kwargs):
         data = request.data
         club_id = data.get('clubId')
@@ -437,6 +442,7 @@ class AnnouncementsAPIView(APIView):
     
 # ADMIN ANNOUNCEMENTS LIST API
 class AdminAnnouncementsListAPIView(APIView):
+    athentication_classes = [HOCTokenAuthentication]
     def get(self, request, *args, **kwargs):
         announcements = Announcements.objects.all()
         serializedAnnouncements = AdminAnnouncementsSerializer(announcements, many=True)
@@ -444,6 +450,7 @@ class AdminAnnouncementsListAPIView(APIView):
     
 # VIEW ATTENDANCE API
 class ViewAttendanceAPIView(APIView):
+    authentication_classes = [StudentUserTokenAuthentication]
     def post(self, request, *args, **kwargs):
         data = request.data
         club_id = data.get('clubId')
@@ -476,6 +483,7 @@ class ViewAttendanceAPIView(APIView):
     
 # STUDENT DATA API
 class StudentDataAPIView(APIView):
+    authentication_classes = [StudentUserTokenAuthentication]
     def get(self, request, *args, **kwargs):
         student_id = request.query_params.get('studentId')
         student = Student.objects.get(id=student_id)
@@ -516,6 +524,7 @@ class StudentOTPVerifyAPIView(APIView):
 
 #SORTING FILTERS
 class EventTypeCountAPIView(APIView):
+    authentication_classes = [FacultyTokenAuthentication]
     def get(self, request, *args, **kwargs):
         clubId = request.query_params.get('clubId')
         event_type_counts = Event.objects.filter(clubId=clubId).values('eventType').annotate(count=Count('eventType')).order_by('-count')
@@ -527,6 +536,7 @@ class EventTypeCountAPIView(APIView):
         return Response({'data': response_data}, status=200)
     
 class BloodGroupListAPIView(APIView):
+    authentication_classes = [FacultyTokenAuthentication]
     def get(self, request, *args, **kwargs):
         try :
             bloodGroup = request.query_params.get('bloodGroup')
@@ -546,6 +556,7 @@ class DepartmentListAPIView(APIView):
         return Response({'data': serializedDepartmentStudents.data}, status=200)
     
 class EventClubListAPIView(APIView):
+    authentication_classes = [FacultyTokenAuthentication]
     def get(self, request, *args, **kwargs):
         clubId = request.query_params.get('clubId')
         events = list(Event.objects.filter(clubId=clubId))
@@ -555,6 +566,7 @@ class EventClubListAPIView(APIView):
         return Response({'data': serializedEvents.data}, status=200)
         
 class EventStudentsListAPIView(APIView):
+    authentication_classes = [FacultyTokenAuthentication]
     def get(self, request, *args, **kwargs):
         eventId = request.query_params.get('eventId')
         clubId = request.query_params.get('clubId')
@@ -572,6 +584,7 @@ class EventStudentsListAPIView(APIView):
         return Response({'data': serializedStudents.data}, status=status.HTTP_200_OK)
     
 class UpcomingAnnouncementsAPIView(APIView):
+    authentication_classes = [StudentUserTokenAuthentication]
     def get(self, request, *args, **kwargs):
         club_id = request.query_params.get('clubId')
         current_datetime = timezone.now()  
@@ -583,6 +596,7 @@ class UpcomingAnnouncementsAPIView(APIView):
         return Response({'data': serializedAnnouncements.data}, status=200)
     
 class UpcomingEventsAPIView(APIView):
+    authentication_classes = [StudentUserTokenAuthentication] 
     def get(self, request, *args, **kwargs):
         club_id = request.query_params.get('clubId')
         current_datetime = timezone.now()  
@@ -593,9 +607,9 @@ class UpcomingEventsAPIView(APIView):
         serializedEvents = EventDataSerializer(events, many=True)
         return Response({'data': serializedEvents.data}, status=200)
 
-
 #Quota API
 class QuotaCreateAPIView(APIView):
+    authentication_classes = [FacultyTokenAuthentication]
     def post(self, request):
         try :
             club_id = request.data.get('clubId')
@@ -622,7 +636,9 @@ class QuotaCreateAPIView(APIView):
         except:
             logger.error(f"Quota creation failed: {serializer.errors}")
             return Response({'error': 'Invalid clubId or batchId'}, status=400)
+    
         
+class QuotaAPIView(APIView):
     def get(self, request):
         batch_id = request.query_params.get('batchId')
         department = request.query_params.get('department')

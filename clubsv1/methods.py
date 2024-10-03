@@ -34,14 +34,6 @@ def faculty_encode_token(payload: dict):
     ) + datetime.timedelta(days=7)
     token = jwt.encode(payload, "faculty_key", algorithm="HS256")
     return token
-    
-    
-def ob_encode_token(payload: dict):
-    payload["exp"] = datetime.datetime.now(
-        tz=datetime.timezone.utc
-    ) + datetime.timedelta(days=7)
-    token = jwt.encode(payload, "ob_key", algorithm="HS256")
-    return token
 
 def hoc_encode_token(payload: dict):
     payload["exp"] = datetime.datetime.now(
