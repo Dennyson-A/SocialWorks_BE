@@ -191,7 +191,7 @@ class StudentSignInAPIView(APIView):
 
 # YEAR API
 class YearAPIView(APIView):
-    authentication_classes = [HOCTokenAuthentication, FacultyTokenAuthentication]
+    # authentication_classes = [HOCTokenAuthentication, FacultyTokenAuthentication]
     def post(self, request, *args, **kwargs):
         data = request.data
         seerializedYearData = YearDataSerializer(data=data)
@@ -208,7 +208,7 @@ class YearAPIView(APIView):
         
 #CLUB API
 class ClubAPIView(APIView):
-    authentication_classes = [HOCTokenAuthentication, FacultyTokenAuthentication]
+    # authentication_classes = [HOCTokenAuthentication, FacultyTokenAuthentication]
     def post(self, request, *args, **kwargs):
         data = request.data
         facultyId = data.get('facultyID')  # Correct key to match your front-end data
@@ -556,7 +556,7 @@ class DepartmentListAPIView(APIView):
         return Response({'data': serializedDepartmentStudents.data}, status=200)
     
 class EventClubListAPIView(APIView):
-    authentication_classes = [FacultyTokenAuthentication]
+    # authentication_classes = [FacultyTokenAuthentication]
     def get(self, request, *args, **kwargs):
         clubId = request.query_params.get('clubId')
         events = list(Event.objects.filter(clubId=clubId))
