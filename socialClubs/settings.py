@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -50,7 +51,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'gibson.25cs@licet.ac.in'
-EMAIL_HOST_PASSWORD = 'FATIMAnarselMARY1305@'
+EMAIL_HOST_PASSWORD = ''
 DEFAULT_FROM_EMAIL = 'gibson.25cs@licet.ac.in'
 
 
@@ -111,20 +112,18 @@ WSGI_APPLICATION = 'socialClubs.wsgi.application'
 # }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://192.168.56.1:3000",
-    "http://192.168.8.172:3000",
+        "*",
 ]
-
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "OPTIONS",
+]
 DATABASES = {
-   'default': {
-       'ENGINE': 'django.db.backends.postgresql',
-       'NAME': 'socialclubs_db',
-       'USER': 'postgres',
-       'PASSWORD': 'postgres',
-       'HOST': '127.0.0.1',
-       'PORT': '5432',
-   }
+    'default': dj_database_url.config(
+        default='postgresql://socialclubs_user:K0OEuoKqjWaqOgMLteGHEWIRmXkeoC2n@dpg-crtrlod2ng1s73cdpdig-a/socialclubs'
+    )
 }
 
 # Password validation
