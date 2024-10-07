@@ -71,8 +71,8 @@ def send_email(to_email, email_subject, email_body):
     msg.attach(MIMEText(email_body, 'plain'))
     
     try:
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
-            server.starttls()
+        # Connect to Gmail SMTP server using SSL on port 465
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, to_email, msg.as_string())
     except smtplib.SMTPAuthenticationError:
