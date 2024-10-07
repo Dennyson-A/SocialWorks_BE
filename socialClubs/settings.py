@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import dj_database_url
+import os
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=".env")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,16 +47,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 ]
-
-# EMAIL SETTINGS
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'gibson.25cs@licet.ac.in'
-EMAIL_HOST_PASSWORD = ''
-DEFAULT_FROM_EMAIL = 'gibson.25cs@licet.ac.in'
-
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -112,7 +105,7 @@ WSGI_APPLICATION = 'socialClubs.wsgi.application'
 # }
 
 CORS_ALLOWED_ORIGINS = [
-        "*",
+        "http://localhost:3000",
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_METHODS = [
@@ -121,9 +114,15 @@ CORS_ALLOW_METHODS = [
     "OPTIONS",
 ]
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://socialclubs_user:K0OEuoKqjWaqOgMLteGHEWIRmXkeoC2n@dpg-crtrlod2ng1s73cdpdig-a/socialclubs'
-    )
+    'default': {
+        # 'ENGINE': os.getenv("ENGINE"),  # Use 'django.db.backends.postgresql'
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv("NAME"),                 # Replace with your database name
+        'USER': os.getenv("USER"),                       # Replace with your PostgreSQL username
+        'PASSWORD': os.getenv("PASSWORD"),                   # Replace with your PostgreSQL password
+        'HOST': os.getenv("HOST"),                           # Set to 'localhost' or IP address
+        'PORT': os.getenv("PORT"),                                # Default PostgreSQL port
+    }
 }
 
 # Password validation
