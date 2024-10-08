@@ -7,8 +7,8 @@ class StudentUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = "__all__"
-        
 class FacultyUserSerializer(serializers.ModelSerializer):
+        
     password = serializers.CharField(write_only=True)
 
     class Meta:

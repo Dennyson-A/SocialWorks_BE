@@ -1,7 +1,6 @@
-FROM python:3.12.4-alpine3.20
+FROM python:latest
 
 WORKDIR /app
 COPY . .
-RUN apk add build-base libpq-dev
-RUN pip3 install -r req.txt
+RUN pip install -r req.txt
 EXPOSE 3000
