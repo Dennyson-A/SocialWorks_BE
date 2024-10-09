@@ -1,6 +1,5 @@
-FROM python:latest
+FROM python:3.12
 
 WORKDIR /app
 COPY . .
-RUN pip install -r req.txt
-EXPOSE 3000
+RUN pip install -r req.txt -v
